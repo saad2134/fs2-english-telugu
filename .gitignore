@@ -3,9 +3,10 @@
 /.temp
 
 # Reports and document generation artifacts
-Report/
-*.pdf
 generate_report*.py
+Report/generate_report*.py
+*.pdf
+!Report/Technical_Report.pdf
 
 # Python
 __pycache__/

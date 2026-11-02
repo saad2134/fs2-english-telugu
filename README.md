@@ -39,6 +39,8 @@ project/
 │           ├── duration/         # Akshara duration plots (T1-T4)
 │           ├── pitch/            # Pitch F0 (Hz) contour plots (T1-T4)
 │           └── energy/           # Frame energy contour plots (T1-T4)
+├── Report/
+│   └── Technical_Report.pdf      # Detailed technical and comparative report
 ├── core/                         # Shared architecture and audio modules
 │   ├── model/                    # FastSpeech 2 model, loss functions, optimizer
 │   ├── transformer/              # Multi-head attention and FFT blocks
@@ -266,4 +268,4 @@ If Git LFS bandwidth is constrained, models can be trained directly using the tr
 
 ## Technical Report
 
-The accompanying technical report (`Technical_Report.pdf`) contains full theoretical derivations, phonetic transcriptions, variance adaptor contour figures, and cross-lingual analysis. It is submitted directly via the course portal alongside this repository.
+The accompanying technical report is available at [`Report/Technical_Report.pdf`](Report/Technical_Report.pdf), containing full theoretical derivations, phonetic transcriptions, variance adaptor contour figures, and cross-lingual analysis.
