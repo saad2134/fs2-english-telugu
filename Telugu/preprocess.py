@@ -76,47 +76,12 @@ def main():
                             all_pitches.extend(p)
                             all_energies.extend(e)
                             total_frames += nf
+        preprocessor.finalize_stats(out_entries, all_pitches, all_energies, total_frames)
+        print("Telugu preprocessing complete!")
     else:
-        print("Raw IndicTTS audio directory not populated. Generating calibration corpus...")
-        calibration_sentences = [
-            "న్యూ రోఫార్మ కోలాజికల్ పరిశోధనలోనూతన ఔషధాల ప్రభావాన్ని విశ్లషే ించారు.",
-            "తాడుపై అతని పట్టుచాలా బలంగా ఉంది.",
-            "ఆమె పట్టుచీరను ధరించి వేడుకకు వచ్చ ింది.",
-            "పులి అడ విలో నిశ్శబ్ంద గా నడిచింది.",
-            "ఈ సమావేశం రెండు వేల ఇరవై ఆరు నవంబర్ పన్నెండవ తేదీ ఉదయం పది నలభై ఐదు గంటలకు ప్రారంభమవుతుంది, సమయానికి సిద్ంధ గా ఉంచండి.",
-            "తెలుగు భాష అత్యంత ప్రాచీనమైన మరియు సుందరమైన ద్రావిడ భాషలలో ఒకటి.",
-            "ధ్వని సంశ్లేషణ సాంకేతికత ద్వారా సహజమైన ప్రసంగాన్ని రూపొందించవచ్చు.",
-            "పిచ్ మరియు వ్యవధి అంచనాలు స్వరంలోని భావోద్వేగాలను నియంత్రిస్తాయి.",
-            "కృత్రిమ మేధస్సు ఆధారిత నమూనాలు భారతీయ భాషల అభివృద్ధికి ఎంతో తోడ్పడుతున్నాయి.",
-            "పాఠ్య విశ్లేషణ నుండి ధ్వని తరంగాలను ఉత్పత్తి చేయడం ఒక అద్భుతమైన ప్రక్రియ.",
-            "భారతీయ సాంకేతిక పరిజ్ఞానం బహుభాషా సంభాషణలను మరింత సులభతరం చేస్తుంది.",
-            "ప్రతి అక్షరానికి నిర్దిష్ట ధ్వని రూపాన్ని కేటాయించడం చాలా ముఖ్యం.",
-            "ధ్వని నాణ్యతను పెంచడానికి న్యూరల్ వొకోడర్లు ఉపయోగపడతాయి.",
-            "పరిశోధకులు సమగ్రమైన డేటాసెట్ల ద్వారా నమూనాలను శిక్షణ ఇస్తున్నారు.",
-            "భాషా నమూనాలు విభిన్న ఉచ్చారణ శైలులను సమర్థవంతంగా సంగ్రహిస్తాయి."
-        ] * 4
-
-        sr = config["preprocessing"]["audio"]["sampling_rate"]
-        for idx, text in enumerate(calibration_sentences):
-            basename = f"indictts_te_{idx:04d}"
-            spk = "indictts_te_spk"
-            duration = max(1.8, len(text) * 0.075)
-            t = np.linspace(0, duration, int(sr * duration))
-            base_f0 = 175.0 + 40.0 * np.sin(2 * np.pi * 1.8 * t)
-            phase = np.cumsum(2 * np.pi * base_f0 / sr)
-            wav = 0.3 * np.sin(phase) + 0.15 * np.sin(2 * phase) + 0.08 * np.sin(3 * phase)
-            wav = wav * np.hanning(len(wav))
-            
-            res = preprocessor.process_utterance(spk, basename, wav, text)
-            if res is not None:
-                entry, p, e, nf = res
-                out_entries.append(entry)
-                all_pitches.extend(p)
-                all_energies.extend(e)
-                total_frames += nf
-
-    preprocessor.finalize_stats(out_entries, all_pitches, all_energies, total_frames)
-    print("Telugu preprocessing complete!")
+        print(f"Dataset notice: Raw IndicTTS directory '{raw_dir}' is empty or not found.")
+        print(f"Preprocessed features and stats.json are already established in '{out_dir}'.")
+        print("To re-run preprocessing from source, place IndicTTS Telugu audio files (.wav) and transcriptions (.txt) into raw_data/Telugu.")
 
 
 if __name__ == "__main__":

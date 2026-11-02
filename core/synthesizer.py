@@ -56,8 +56,19 @@ class FastSpeech2Synthesizer:
 
         if os.path.exists(checkpoint_path):
             print(f"[{self.lang.upper()}] Loading checkpoint: {checkpoint_path}")
-            ckpt = torch.load(checkpoint_path, map_location=self.device)
-            self.model.load_state_dict(ckpt["model"], strict=False)
+            ckpt = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+            model_dict = self.model.state_dict()
+            filtered_state = {}
+            for k, v in ckpt["model"].items():
+                if k in model_dict:
+                    if model_dict[k].shape == v.shape:
+                        filtered_state[k] = v
+                    elif "src_word_emb" in k:
+                        emb = model_dict[k].clone()
+                        min_dim = min(emb.shape[0], v.shape[0])
+                        emb[:min_dim] = v[:min_dim]
+                        filtered_state[k] = emb
+            self.model.load_state_dict(filtered_state, strict=False)
         else:
             print(f"[{self.lang.upper()}] Warning: Checkpoint not found at {checkpoint_path}. Using initialized model weights.")
 
@@ -90,7 +101,7 @@ class FastSpeech2Synthesizer:
             v_cfg = AttrDict(json.load(f))
 
         vocoder = HiFiGANGenerator(v_cfg).to(self.device)
-        ckpt = torch.load(vocoder_ckpt_path, map_location=self.device)
+        ckpt = torch.load(vocoder_ckpt_path, map_location=self.device, weights_only=False)
         vocoder.load_state_dict(ckpt["generator"])
         vocoder.eval()
         vocoder.remove_weight_norm()
