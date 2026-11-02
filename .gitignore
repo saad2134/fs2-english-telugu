@@ -1,0 +1,54 @@
+# Temporary and local assignment resources
+.temp/
+/.temp
+
+# Reports and document generation artifacts
+Report/
+*.pdf
+generate_report*.py
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Audio / large raw data (keep configs/scripts)
+raw_data/
+preprocessed_data/
+*.wav
+*.mp3
+*.flac
+# Explicitly keep test generated audio deliverables in Results/
+!Results/**/*.wav
+!Results/**/test_generated_audios/*.wav
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

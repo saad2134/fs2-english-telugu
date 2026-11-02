@@ -1,0 +1,83 @@
+# FastSpeech 2 Configuration - English (Svarah Corpus)
+dataset:
+  name: "Svarah"
+  language: "english"
+  hf_repo: "ai4bharat/Svarah"
+  target_train_hours: 5.0
+  target_val_hours: 1.0
+  sampling_strategy: "speaker_stratified_snr_filtered"
+  min_duration_sec: 1.0
+  max_duration_sec: 12.0
+  raw_path: "raw_data/English"
+  preprocessed_path: "preprocessed_data/English"
+
+preprocessing:
+  val_size: 512
+  text_cleaners: ["english_cleaners"]
+  audio:
+    sampling_rate: 22050
+    max_wav_value: 32768.0
+  stft:
+    filter_length: 1024
+    hop_length: 256
+    win_length: 1024
+  mel:
+    n_mel_channels: 80
+    mel_fmin: 0.0
+    mel_fmax: 8000.0
+  pitch:
+    feature: "phoneme_level"
+    normalization: true
+  energy:
+    feature: "phoneme_level"
+    normalization: true
+
+model:
+  max_seq_len: 1000
+  multi_speaker: false
+  transformer:
+    encoder_layer: 4
+    encoder_head: 4
+    encoder_hidden: 256
+    decoder_layer: 4
+    decoder_head: 4
+    decoder_hidden: 256
+    conv_filter_size: 1024
+    conv_kernel_size: [9, 1]
+    encoder_dropout: 0.1
+    decoder_dropout: 0.1
+  variance_predictor:
+    filter_size: 256
+    kernel_size: 3
+    dropout: 0.2
+  variance_embedding:
+    pitch_quantization: "log"
+    energy_quantization: "linear"
+    n_bins: 256
+
+vocoder:
+  model: "HiFi-GAN"
+  speaker: "universal"
+  config_path: "core/hifigan/config.json"
+  ckpt_path: "core/hifigan/generator_universal.pth.tar"
+
+train:
+  path:
+    ckpt_path: "English/checkpoints"
+    log_path: "English/logs"
+    result_path: "Results/English"
+  optimizer:
+    lr: 0.001
+    betas: [0.9, 0.98]
+    eps: 0.000000001
+    weight_decay: 0.000001
+    warm_up_step: 2000
+    anneal_steps: [10000, 20000, 30000]
+    anneal_rate: 0.5
+  batch_size: 16
+  grad_clip_thresh: 1.0
+  grad_acc_step: 1
+  total_step: 40000
+  log_step: 100
+  eval_step: 500
+  save_step: 1000
