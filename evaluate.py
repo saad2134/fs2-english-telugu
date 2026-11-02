@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-FastSpeech 2 Submission Evaluation and Verification Script
-Performs a comprehensive automated audit of all deliverables mandated by the
-FastSpeech 2 assignment specification for off-screen evaluation.
+FastSpeech 2 System Verification Suite
+Verifies project structure, model checkpoints, audio waveforms, and variance plots.
 
 Usage:
     python evaluate.py
@@ -80,7 +79,7 @@ def inspect_wav_file(wav_path):
 
 
 def audit_structure():
-    """Validates folder hierarchy against assignment PDF specification."""
+    """Validates module and resource layout."""
     expected_structure = [
         "English/train.py",
         "English/preprocess.py",
@@ -118,29 +117,29 @@ def audit_structure():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluate FastSpeech 2 Project Deliverables")
+    parser = argparse.ArgumentParser(description="FastSpeech 2 System Verification Suite")
     parser.add_argument("--live-inference", action="store_true", help="Run live neural synthesis test on CPU/GPU")
     args = parser.parse_args()
 
     print("=" * 78)
-    print("      FASTSPEECH 2 COMPREHENSIVE SUBMISSION AUDIT & VERIFICATION")
+    print("            FASTSPEECH 2 SYSTEM AND ASSET VERIFICATION")
     print("=" * 78)
     print(f"Repository Root : {ROOT_DIR}")
     print(f"Python Runtime  : {sys.version.split()[0]}")
     print("-" * 78)
 
     # 1. Directory Structure Audit
-    print("\n[1/6] Auditing Required Folder and File Deliverables...")
+    print("\n[1/6] Verifying Project Layout and Modules...")
     missing = audit_structure()
     if missing:
-        print(f"  [FAIL] Missing required items ({len(missing)}):")
+        print(f"  [FAIL] Missing items ({len(missing)}):")
         for m in missing:
             print(f"         - {m}")
     else:
-        print("  [PASS] All 25 required files and directories match the PDF specification.")
+        print("  [PASS] All expected modules, scripts, and asset directories are present.")
 
     # 2. Checkpoint Audit
-    print("\n[2/6] Auditing Acoustic and Vocoder Checkpoints...")
+    print("\n[2/6] Verifying Acoustic and Vocoder Checkpoints...")
     ckpts = [
         ("English FastSpeech 2 (Best)", os.path.join(ROOT_DIR, "English", "checkpoints", "checkpoint_best.pth.tar")),
         ("English FastSpeech 2 (Final)", os.path.join(ROOT_DIR, "English", "checkpoints", "checkpoint_final.pth.tar")),
@@ -160,8 +159,8 @@ def main():
         else:
             print(f"  [PASS] {label}: {info}")
 
-    # 3. Audio Deliverables Audit
-    print("\n[3/6] Auditing Test Speech Audio Deliverables (10 Utterances)...")
+    # 3. Speech Waveforms Verification
+    print("\n[3/6] Verifying Synthesized Speech Waveforms (10 Utterances)...")
     english_ids = ["E1", "E2a", "E2b", "E3", "E4"]
     telugu_ids = ["T1", "T2a", "T2b", "T3", "T4"]
     audio_valid = True
@@ -187,7 +186,7 @@ def main():
             audio_valid = False
 
     # 4. Variance Adaptor Plots Audit
-    print("\n[4/6] Auditing Variance Adaptor Plots (30 Plots)...")
+    print("\n[4/6] Verifying Variance Adaptor Visualizations (30 Plots)...")
     plots_valid = True
     plot_types = ["duration", "pitch", "energy"]
     en_plot_count = 0
@@ -217,7 +216,7 @@ def main():
         print("  [FAIL] Incomplete variance adaptor plots.")
 
     # 5. Loss Plots and Technical Report Audit
-    print("\n[5/6] Auditing Loss Curves & Technical Report...")
+    print("\n[5/6] Verifying Multi-Task Loss Curves & Technical Report...")
     loss_curves = [
         "Results/English/training_loss.png",
         "Results/English/validation_loss.png",
@@ -262,19 +261,19 @@ def main():
 
     # Final Summary Verdict
     print("\n" + "=" * 78)
-    print("                         AUDIT VERDICT SUMMARY")
+    print("                         SYSTEM VERIFICATION SUMMARY")
     print("=" * 78)
     overall_pass = (not missing) and all_ckpts_valid and audio_valid and plots_valid and loss_valid
     if overall_pass:
-        print("  FINAL STATUS : READY FOR EVALUATION [100% COMPLIANT]")
-        print("  VERDICT      : All submission requirements strictly met.")
-        print("                 Off-screen evaluators can reproduce results seamlessly.")
+        print("  STATUS : ALL CHECKS PASSED")
+        print("  DETAILS: Checkpoints, speech audio, variance contours, and documentation verified.")
     else:
-        print("  FINAL STATUS : ISSUES DETECTED")
-        print("  VERDICT      : Please review flagged items above before final submission.")
+        print("  STATUS : ISSUES DETECTED")
+        print("  DETAILS: Please inspect the flagged items above.")
     print("=" * 78)
 
 
 if __name__ == "__main__":
     main()
+
 

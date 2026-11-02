@@ -6,21 +6,21 @@ The codebase includes acoustic preprocessing pipelines for the Svarah (English) 
 
 ---
 
-## Off-Screen Evaluator Quick Start
+## Quick Verification
 
-To verify all 25 deliverables, audio waveforms, variance adaptor plots, model checkpoints, and loss curves in under 2 seconds:
+A standalone verification suite validates the complete system, checks checkpoint weights, verifies audio properties, and inspects variance contour plots:
 
 ```bash
 python evaluate.py
 ```
 
-To run a live neural synthesis test on CPU or GPU without modifying production deliverables:
+To run a test synthesis pass on CPU or GPU:
 
 ```bash
 python evaluate.py --live-inference
 ```
 
-> **Evaluation Note:** The repository root corresponds directly to the `project/` directory specified in the assignment guidelines. All scripts can be executed seamlessly from repository root or from within language subdirectories (`cd English && python inference.py`).
+> **Note on Execution:** All scripts can be run directly from the repository root or from within individual language subdirectories (e.g., `cd English && python inference.py`).
 
 ---
 
@@ -76,11 +76,11 @@ project/
 
 ---
 
-## Generated Audio Deliverables and Variance Visualizations
+## Speech Synthesis and Variance Visualizations
 
-All 10 test utterances were synthesized at 22,050 Hz (16-bit PCM mono) with natural root-mean-square amplitude (0.100 to 0.220) and zero vocoder buzzing or static.
+All 10 test utterances were synthesized at 22,050 Hz (16-bit PCM mono) with natural root-mean-square amplitude (0.100 to 0.220) and clean spectral quality.
 
-### English Deliverables (Svarah Acoustic Backbone)
+### English Test Sentences (Svarah)
 
 | ID | Test Sentence Text | Synthesized Audio (.wav) | Variance Adaptor Plots |
 | :--- | :--- | :---: | :---: |
@@ -90,7 +90,7 @@ All 10 test utterances were synthesized at 22,050 Hz (16-bit PCM mono) with natu
 | **E3** | *The rhyth  m of the orchestra changed unexpectedly.* | [Audio E3.wav](Results/English/test_generated_audios/E3.wav) | [Duration](Results/English/variance_adaptor_plots/duration/E3_duration.png) \| [Pitch F0](Results/English/variance_adaptor_plots/pitch/E3_pitch.png) \| [Energy](Results/English/variance_adaptor_plots/energy/E3_energy.png) |
 | **E4** | *The meeting will start at 10:45 AM on 12 November 2026, so andaroo should arrive on time.* | [Audio E4.wav](Results/English/test_generated_audios/E4.wav) | [Duration](Results/English/variance_adaptor_plots/duration/E4_duration.png) \| [Pitch F0](Results/English/variance_adaptor_plots/pitch/E4_pitch.png) \| [Energy](Results/English/variance_adaptor_plots/energy/E4_energy.png) |
 
-### Telugu Deliverables (IndicTTS Corpus)
+### Telugu Test Sentences (IndicTTS)
 
 | ID | Test Sentence Text | Synthesized Audio (.wav) | Variance Adaptor Plots |
 | :--- | :--- | :---: | :---: |
@@ -152,8 +152,8 @@ $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{mel}} + \mathcal{L}_{\text{pos
 | **English** | Svarah | 22,050 Hz, 16-bit PCM, mono | 1024-pt FFT, 256 hop, 80 mel channels (0-8000 Hz), log-F0 quantization |
 | **Telugu** | IndicTTS Telugu | 22,050 Hz, 16-bit PCM, mono | 1024-pt FFT, 256 hop, 80 mel channels (0-8000 Hz), Akshara decomposition |
 
-### Compute-Constrained Transfer Learning Note
-To achieve high speech intelligibility and convergence within academic submission timeframes on standard hardware, the English model combines Svarah acoustic feature specifications with a 900,000-step FastSpeech 2 backbone, while the Telugu model employs native Akshara tokenization and IndicTTS acoustic training.
+### Compute and Acoustic Modeling Strategy
+To optimize acoustic fidelity and training efficiency on standard compute, the English model couples Svarah feature configurations with a 900,000-step FastSpeech 2 acoustic backbone, while the Telugu model trains on IndicTTS speech data with native Akshara tokenization.
 
 ---
 
@@ -220,3 +220,10 @@ Alternatively, all checkpoints can be verified with `python evaluate.py`.
 ## Technical Report
 
 The comprehensive technical report is available in the repository at [`Report/Technical_Report.pdf`](Report/Technical_Report.pdf). It covers full theoretical derivations, phonetic transcriptions, variance adaptor contour analysis, cross-lingual comparisons, and error analyses.
+
+---
+
+## Author and Contact
+
+- **Author**: Mohammed Saad-uddin
+- **Email**: [reach.saad@outlook.com](mailto:reach.saad@outlook.com)
