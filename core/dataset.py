@@ -21,7 +21,18 @@ except ImportError:
 class FastSpeech2Dataset(Dataset):
     def __init__(self, filename, config, sort=False, drop_last=False):
         self.config = config
-        self.preprocessed_path = config["dataset"]["preprocessed_path"]
+        raw_preprocessed = config["dataset"]["preprocessed_path"]
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        if not os.path.isabs(raw_preprocessed):
+            if os.path.exists(raw_preprocessed):
+                self.preprocessed_path = os.path.abspath(raw_preprocessed)
+            elif os.path.exists(os.path.join(repo_root, raw_preprocessed)):
+                self.preprocessed_path = os.path.abspath(os.path.join(repo_root, raw_preprocessed))
+            else:
+                self.preprocessed_path = os.path.abspath(os.path.join(repo_root, raw_preprocessed))
+        else:
+            self.preprocessed_path = raw_preprocessed
+
         self.cleaners = config["preprocessing"].get("text_cleaners", [])
         self.lang = config["dataset"]["language"].lower()
         self.batch_size = config["train"]["batch_size"]

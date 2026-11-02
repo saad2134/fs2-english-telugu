@@ -28,7 +28,10 @@ except ImportError:
 
 class FastSpeech2Trainer:
     def __init__(self, config_path, device=None):
-        with open(config_path, "r", encoding="utf-8") as f:
+        self.config_path = os.path.abspath(config_path)
+        self.config_dir = os.path.dirname(self.config_path)
+        self.repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        with open(self.config_path, "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
 
         self.lang = self.config["dataset"]["language"].lower()
@@ -74,8 +77,8 @@ class FastSpeech2Trainer:
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=1000, eta_min=1e-5)
 
         # Output paths
-        self.ckpt_dir = self.config["train"]["path"]["ckpt_path"]
-        self.result_dir = self.config["train"]["path"]["result_path"]
+        self.ckpt_dir = self._resolve(self.config["train"]["path"]["ckpt_path"])
+        self.result_dir = self._resolve(self.config["train"]["path"]["result_path"])
         os.makedirs(self.ckpt_dir, exist_ok=True)
         os.makedirs(self.result_dir, exist_ok=True)
 
@@ -83,6 +86,21 @@ class FastSpeech2Trainer:
         self.val_losses = {"Total": [], "Mel": [], "PostNet": [], "Pitch": [], "Energy": [], "Duration": []}
         self.train_steps = []
         self.val_steps = []
+
+    def _resolve(self, path):
+        if not path:
+            return path
+        if os.path.isabs(path) and os.path.exists(path):
+            return path
+        if os.path.exists(path):
+            return os.path.abspath(path)
+        cand = os.path.join(self.repo_root, path)
+        if os.path.exists(cand):
+            return os.path.abspath(cand)
+        cand_cfg = os.path.join(self.config_dir, path)
+        if os.path.exists(cand_cfg):
+            return os.path.abspath(cand_cfg)
+        return os.path.abspath(cand)
 
     def train(self, target_steps=120, eval_interval=30):
         print(f"[{self.lang.upper()}] Starting training for {target_steps} steps...")

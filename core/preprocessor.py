@@ -33,8 +33,11 @@ class UnifiedPreprocessor:
     def __init__(self, config):
         self.config = config
         self.lang = config["dataset"]["language"].lower()
-        self.in_dir = config["dataset"]["raw_path"]
-        self.out_dir = config["dataset"]["preprocessed_path"]
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        raw_p = config["dataset"]["raw_path"]
+        prep_p = config["dataset"]["preprocessed_path"]
+        self.in_dir = raw_p if (os.path.isabs(raw_p) and os.path.exists(raw_p)) else (os.path.abspath(raw_p) if os.path.exists(raw_p) else os.path.abspath(os.path.join(repo_root, raw_p)))
+        self.out_dir = prep_p if (os.path.isabs(prep_p) and os.path.exists(prep_p)) else (os.path.abspath(prep_p) if os.path.exists(prep_p) else os.path.abspath(os.path.join(repo_root, prep_p)))
         self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
         self.hop_length = config["preprocessing"]["stft"]["hop_length"]
         self.filter_length = config["preprocessing"]["stft"]["filter_length"]

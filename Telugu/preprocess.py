@@ -33,13 +33,13 @@ def main():
         config = yaml.safe_load(f)
 
     preprocessor = UnifiedPreprocessor(config)
-    out_dir = config["dataset"]["preprocessed_path"]
+    out_dir = preprocessor.out_dir
     os.makedirs(os.path.join(out_dir, "mel"), exist_ok=True)
     os.makedirs(os.path.join(out_dir, "pitch"), exist_ok=True)
     os.makedirs(os.path.join(out_dir, "energy"), exist_ok=True)
     os.makedirs(os.path.join(out_dir, "duration"), exist_ok=True)
 
-    raw_dir = config["dataset"]["raw_path"]
+    raw_dir = preprocessor.in_dir
     out_entries = []
     all_pitches = []
     all_energies = []

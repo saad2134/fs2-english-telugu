@@ -33,7 +33,11 @@ except ImportError:
 
 class FastSpeech2Synthesizer:
     def __init__(self, config_path, checkpoint_path=None, device=None):
-        with open(config_path, "r", encoding="utf-8") as f:
+        self.config_path = os.path.abspath(config_path)
+        self.config_dir = os.path.dirname(self.config_path)
+        self.repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+        with open(self.config_path, "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
 
         self.lang = self.config["dataset"]["language"].lower()
@@ -49,10 +53,20 @@ class FastSpeech2Synthesizer:
 
         # Checkpoint loading
         if checkpoint_path is None:
-            ckpt_dir = self.config["train"]["path"]["ckpt_path"]
+            ckpt_dir = self._resolve(self.config["train"]["path"]["ckpt_path"])
             checkpoint_path = os.path.join(ckpt_dir, "checkpoint_best.pth.tar")
             if not os.path.exists(checkpoint_path):
                 checkpoint_path = os.path.join(ckpt_dir, "checkpoint_final.pth.tar")
+        else:
+            checkpoint_path = self._resolve(checkpoint_path)
+
+        if self._check_lfs_pointer(checkpoint_path):
+            raise RuntimeError(
+                f"[{self.lang.upper()}] Checkpoint at '{checkpoint_path}' is a Git LFS pointer text file ({os.path.getsize(checkpoint_path)} bytes). "
+                "The real binary weights have not been downloaded. Please execute:\n"
+                "    git lfs install && git lfs pull\n"
+                "or download weights using the external mirror link in README.md."
+            )
 
         if os.path.exists(checkpoint_path):
             print(f"[{self.lang.upper()}] Loading checkpoint: {checkpoint_path}")
@@ -70,7 +84,10 @@ class FastSpeech2Synthesizer:
                         filtered_state[k] = emb
             self.model.load_state_dict(filtered_state, strict=False)
         else:
-            print(f"[{self.lang.upper()}] Warning: Checkpoint not found at {checkpoint_path}. Using initialized model weights.")
+            raise FileNotFoundError(
+                f"[{self.lang.upper()}] Checkpoint not found at '{checkpoint_path}'. "
+                "Ensure checkpoints exist in English/checkpoints/ or Telugu/checkpoints/."
+            )
 
         self.model.eval()
 
@@ -78,7 +95,7 @@ class FastSpeech2Synthesizer:
         self.vocoder = self._load_vocoder()
 
         # Stats for denormalizing pitch and energy
-        preprocessed_path = self.config["dataset"]["preprocessed_path"]
+        preprocessed_path = self._resolve(self.config["dataset"]["preprocessed_path"])
         stats_path = os.path.join(preprocessed_path, "stats.json")
         if os.path.exists(stats_path):
             with open(stats_path, "r") as f:
@@ -89,12 +106,44 @@ class FastSpeech2Synthesizer:
                 "energy": [0.01, 100.0, 30.0, 20.0]
             }
 
+    def _resolve(self, path):
+        if not path:
+            return path
+        if os.path.isabs(path) and os.path.exists(path):
+            return path
+        if os.path.exists(path):
+            return os.path.abspath(path)
+        cand = os.path.join(self.repo_root, path)
+        if os.path.exists(cand):
+            return os.path.abspath(cand)
+        cand_cfg = os.path.join(self.config_dir, path)
+        if os.path.exists(cand_cfg):
+            return os.path.abspath(cand_cfg)
+        return os.path.abspath(cand)
+
+    def _check_lfs_pointer(self, path):
+        if not os.path.exists(path):
+            return False
+        if os.path.getsize(path) < 1024:
+            try:
+                with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                    header = f.read(128)
+                    if "git-lfs" in header or "oid sha256" in header:
+                        return True
+            except Exception:
+                pass
+        return False
+
     def _load_vocoder(self):
-        vocoder_cfg_path = self.config["vocoder"]["config_path"]
-        vocoder_ckpt_path = self.config["vocoder"]["ckpt_path"]
+        vocoder_cfg_path = self._resolve(self.config["vocoder"]["config_path"])
+        vocoder_ckpt_path = self._resolve(self.config["vocoder"]["ckpt_path"])
 
         if not os.path.exists(vocoder_cfg_path) or not os.path.exists(vocoder_ckpt_path):
-            print(f"[{self.lang.upper()}] Vocoder assets not found, falling back to Griffin-Lim.")
+            print(f"[{self.lang.upper()}] Vocoder assets not found at '{vocoder_ckpt_path}', falling back to Griffin-Lim.")
+            return None
+
+        if self._check_lfs_pointer(vocoder_ckpt_path):
+            print(f"[{self.lang.upper()}] HiFi-GAN vocoder checkpoint is a Git LFS pointer. Falling back to Griffin-Lim. (Run 'git lfs pull' for neural vocoding).")
             return None
 
         with open(vocoder_cfg_path, "r") as f:
@@ -112,6 +161,8 @@ class FastSpeech2Synthesizer:
         """
         Synthesizes audio for a single sentence and generates variance adaptor plots.
         """
+        output_audio_dir = self._resolve(output_audio_dir)
+        output_plot_dir = self._resolve(output_plot_dir)
         os.makedirs(output_audio_dir, exist_ok=True)
         dur_plot_dir = os.path.join(output_plot_dir, "duration")
         pitch_plot_dir = os.path.join(output_plot_dir, "pitch")
