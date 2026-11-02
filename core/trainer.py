@@ -88,7 +88,17 @@ class FastSpeech2Trainer:
         print(f"[{self.lang.upper()}] Starting training for {target_steps} steps...")
         self.model.train()
         step = 0
-        best_val_loss = float("inf")
+        # Check for existing checkpoint to establish true baseline best_val_loss
+        existing_ckpt_path = os.path.join(self.ckpt_dir, "checkpoint_best.pth.tar")
+        if os.path.exists(existing_ckpt_path):
+            try:
+                ckpt_info = torch.load(existing_ckpt_path, map_location="cpu", weights_only=False)
+                best_val_loss = float(ckpt_info.get("loss", float("inf")))
+                print(f"[{self.lang.upper()}] Existing best checkpoint detected with validation loss: {best_val_loss:.4f}")
+            except Exception:
+                best_val_loss = float("inf")
+        else:
+            best_val_loss = float("inf")
 
         pbar = tqdm(total=target_steps, desc=f"Training {self.lang.title()}")
 
@@ -149,14 +159,21 @@ class FastSpeech2Trainer:
                         if val_loss < best_val_loss:
                             best_val_loss = val_loss
                             self.save_checkpoint("checkpoint_best.pth.tar", step, val_loss)
+                            print(f"[{self.lang.upper()}] New best checkpoint saved with loss: {val_loss:.4f}")
 
         pbar.close()
-        self.save_checkpoint("checkpoint_final.pth.tar", step, self.val_losses["Total"][-1] if self.val_losses["Total"] else total_loss.item())
+        
+        # Save training run checkpoint
+        self.save_checkpoint("checkpoint_latest.pth.tar", step, self.val_losses["Total"][-1] if self.val_losses["Total"] else total_loss.item())
 
-        # Generate plots
+        # Generate plots (preserve publication loss plots if running a brief verification step)
         print(f"[{self.lang.upper()}] Generating loss curve plots...")
-        train_plot_path = os.path.join(self.result_dir, "training_loss.png")
-        val_plot_path = os.path.join(self.result_dir, "validation_loss.png")
+        if target_steps >= 1000:
+            train_plot_path = os.path.join(self.result_dir, "training_loss.png")
+            val_plot_path = os.path.join(self.result_dir, "validation_loss.png")
+        else:
+            train_plot_path = os.path.join(self.result_dir, "training_loss_run.png")
+            val_plot_path = os.path.join(self.result_dir, "validation_loss_run.png")
 
         plot_loss_curve(self.train_steps, self.train_losses, train_plot_path, title=f"Training Loss - FastSpeech 2 ({self.lang.title()})")
         plot_loss_curve(self.val_steps, self.val_losses, val_plot_path, title=f"Validation Loss - FastSpeech 2 ({self.lang.title()})")
